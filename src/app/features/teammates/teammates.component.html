@@ -1,0 +1,33 @@
+<section>
+  <h2>Тиммейты</h2>
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <div *ngIf="!loading">
+      <div class="row" style="margin: 8px 0">
+        <input
+          [value]="filter"
+          (input)="onFilter($any($event.target).value)"
+          placeholder="Фильтр по нику"
+        />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Ник</th>
+            <th>Совместных матчей</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of paged">
+            <td>
+              <tui-island size="s">{{ t.nickname }}</tui-island>
+            </td>
+            <td>
+              <tui-badge size="s">{{ t.matchesTogether }}</tui-badge>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <tui-pagination [length]="totalPages" [(index)]="page"></tui-pagination>
+    </div>
+  </tui-loader>
+</section>

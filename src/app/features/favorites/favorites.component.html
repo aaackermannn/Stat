@@ -1,0 +1,257 @@
+<section>
+    <h2>Избранные игроки</h2>
+
+    <tui-loader [showLoader]="loading" [overlay]="true">
+      <ng-container *ngIf="!isAuthenticated">
+        <tui-island size="l" appearance="warning">
+          <div class="auth-required">
+            <h3 style="margin-top: 0; color: var(--danger);">
+              Войдите для доступа к избранному
+            </h3>
+            <p>Для доступа к избранным игрокам необходимо войти в систему.</p>
+            <div class="auth-buttons">
+              <button
+                tuiButton
+                appearance="primary"
+                size="m"
+                (click)="signInWithGoogle()"
+              >
+                Войти через Google
+              </button>
+              <button
+                tuiButton
+                appearance="flat"
+                size="m"
+                routerLink="/account"
+              >
+                Перейти в личный кабинет
+              </button>
+            </div>
+          </div>
+        </tui-island>
+      </ng-container>
+
+      <ng-container *ngIf="isAuthenticated">
+        <!-- Мой профиль (если указан Faceit ID) -->
+        <tui-island size="l" style="margin-bottom: 24px;" *ngIf="myProfile">
+          <h3 style="margin-top: 0; margin-bottom: 20px;">Мой профиль</h3>
+          <div class="my-profile">
+            <div class="profile-header">
+              <div class="avatar-section">
+                <img
+                  *ngIf="myProfile.avatarUrl"
+                  [src]="myProfile.avatarUrl"
+                  alt="Avatar"
+                  class="avatar"
+                />
+                <div *ngIf="!myProfile.avatarUrl" class="avatar-placeholder">
+                  <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                    ></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div class="profile-info">
+                <h4>{{ myProfile.nickname }}</h4>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <div class="stat-value">
+                      {{ myProfile.kdRatio | number : '1.2-2' }}
+                    </div>
+                    <div class="stat-label">K/D Ratio</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">
+                      {{ myProfile.winRatePercent | number : '1.1-1' }}%
+                    </div>
+                    <div class="stat-label">Win Rate</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">
+                      {{ myProfile.matchesPlayed | number }}
+                    </div>
+                    <div class="stat-label">Matches</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </tui-island>
+
+        <!-- Фильтр по количеству матчей -->
+        <tui-island size="l" style="margin-bottom: 24px;">
+          <h3 style="margin-top: 0; margin-bottom: 20px;">
+            Фильтр статистики
+          </h3>
+          <div class="filter-buttons">
+            <button
+              tuiButton
+              [appearance]="selectedFilter === 20 ? 'primary' : 'flat'"
+              size="m"
+              (click)="setFilter(20)"
+            >
+              Последние 20 матчей
+            </button>
+            <button
+              tuiButton
+              [appearance]="selectedFilter === 50 ? 'primary' : 'flat'"
+              size="m"
+              (click)="setFilter(50)"
+            >
+              Последние 50 матчей
+            </button>
+            <button
+              tuiButton
+              [appearance]="selectedFilter === 100 ? 'primary' : 'flat'"
+              size="m"
+              (click)="setFilter(100)"
+            >
+              Последние 100 матчей
+            </button>
+          </div>
+        </tui-island>
+
+        <!-- Список избранных игроков -->
+        <tui-island
+          size="l"
+          style="margin-bottom: 24px;"
+          *ngIf="favoritePlayers.length"
+        >
+          <h3 style="margin-top: 0; margin-bottom: 20px;">
+            Избранные игроки ({{ favoritePlayers.length }})
+          </h3>
+          <div class="players-grid">
+            <div *ngFor="let player of favoritePlayers" class="player-card">
+              <div class="player-header">
+                <div class="avatar-section">
+                  <img
+                    *ngIf="player.avatarUrl"
+                    [src]="player.avatarUrl"
+                    alt="Avatar"
+                    class="avatar"
+                  />
+                  <div *ngIf="!player.avatarUrl" class="avatar-placeholder">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path
+                        d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                      ></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                </div>
+                <div class="player-info">
+                  <h4>{{ player.nickname }}</h4>
+                  <div class="stats-grid">
+                    <div class="stat-item">
+                      <div class="stat-value">
+                        {{ player.kdRatio | number : '1.2-2' }}
+                      </div>
+                      <div class="stat-label">K/D</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-value">
+                        {{ player.winRatePercent | number : '1.1-1' }}%
+                      </div>
+                      <div class="stat-label">Win</div>
+                    </div>
+                    <div class="stat-item">
+                      <div class="stat-value">
+                        {{ player.matchesPlayed | number }}
+                      </div>
+                      <div class="stat-label">Matches</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="player-actions">
+                  <button
+                    tuiButton
+                    [appearance]="player.isInComparison ? 'error' : 'primary'"
+                    size="s"
+                    (click)="toggleComparison(player)"
+                    [disabled]="
+                      !player.isInComparison && comparisonPlayers.length >= 5
+                    "
+                  >
+                    {{ player.isInComparison ? 'Убрать' : 'Добавить' }}
+                  </button>
+                  <a
+                    tuiButton
+                    size="s"
+                    appearance="flat"
+                    [routerLink]="['/player', player.id]"
+                  >
+                    Профиль
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </tui-island>
+
+        <!-- Графики сравнения -->
+        <div class="charts-grid" *ngIf="comparisonPlayers.length > 0">
+          <tui-island size="l">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">
+              Сравнение K/D Ratio
+            </h3>
+            <zingchart-angular
+              [config]="kdComparisonChartConfig"
+              [height]="300"
+            ></zingchart-angular>
+          </tui-island>
+
+          <tui-island size="l">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">
+              Сравнение Win Rate
+            </h3>
+            <zingchart-angular
+              [config]="winRateComparisonChartConfig"
+              [height]="300"
+            ></zingchart-angular>
+          </tui-island>
+
+          
+        </div>
+
+        <!-- Легенда -->
+        <tui-island size="m" *ngIf="comparisonPlayers.length > 0">
+          <h4 style="margin-top: 0; margin-bottom: 16px;">Игрок:</h4>
+          <div class="legend-items">
+            <div *ngFor="let player of comparisonPlayers" class="legend-item">
+              <div
+                class="color-indicator"
+                [style.background-color]="player.color"
+              ></div>
+              <span>{{ player.nickname }}</span>
+            </div>
+          </div>
+        </tui-island>
+
+        <!-- Сообщение если нет избранных -->
+        <tui-island size="l" *ngIf="!favoritePlayers.length">
+          <div class="no-favorites">
+            <p>У вас пока нет избранных игроков.</p>
+            <a tuiButton appearance="primary" size="m" routerLink="/search">
+              Найти игроков
+            </a>
+          </div>
+        </tui-island>
+      </ng-container>
+    </tui-loader>
+  </section>

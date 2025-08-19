@@ -1,0 +1,19 @@
+<tui-root>
+  <header class="app-header" role="navigation">
+    <div class="brand">FaceItTrackIt</div>
+    <nav class="nav" aria-label="Main Navigation">
+      <a routerLink="/search" routerLinkActive="active" tabindex="0">Поиск</a>
+      <a routerLink="/favorites" routerLinkActive="active" tabindex="0"
+        >Избранное</a
+      >
+      <a routerLink="/notes" routerLinkActive="active" tabindex="0">Заметки</a>
+      <a routerLink="/goals" routerLinkActive="active" tabindex="0">Цели</a>
+      <a routerLink="/account" routerLinkActive="active" tabindex="0"
+        >Профиль</a
+      >
+    </nav>
+  </header>
+  <main class="app-main container">
+    <router-outlet></router-outlet>
+  </main>
+</tui-root>

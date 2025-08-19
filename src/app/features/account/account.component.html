@@ -1,0 +1,249 @@
+<section>
+  <h2>Личный кабинет</h2>
+
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <ng-container *ngIf="!isAuthenticated">
+      <tui-island size="l" appearance="warning">
+        <div class="auth-required">
+          <h3 style="margin-top: 0; color: var(--danger)">
+            Требуется авторизация
+          </h3>
+          <p>Для доступа к личному кабинету необходимо войти в систему.</p>
+          <div class="auth-buttons">
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="showLoginForm()"
+            >
+              Войти
+            </button>
+            <button
+              tuiButton
+              appearance="flat"
+              size="m"
+              (click)="showRegisterForm()"
+            >
+              Зарегистрироваться
+            </button>
+            <button
+              tuiButton
+              appearance="flat"
+              size="m"
+              (click)="signInWithGoogle()"
+            >
+              Войти через Google
+            </button>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="isAuthenticated && !showLogin && !showRegister">
+      <tui-island size="l" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Профиль пользователя</h3>
+        <div class="profile-section">
+          <div class="profile-header">
+            <div class="avatar-section">
+              <img
+                *ngIf="user?.photoURL"
+                [src]="user.photoURL"
+                alt="Avatar"
+                class="user-avatar"
+              />
+              <div *ngIf="!user?.photoURL" class="avatar-placeholder">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+            </div>
+            <div class="user-info">
+              <div class="user-name">
+                {{ user?.displayName || 'Пользователь' }}
+              </div>
+              <div class="user-email">
+                {{ user?.email || 'Email не указан' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="l" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Настройки Faceit</h3>
+        <div class="faceit-section">
+          <div class="form-group">
+            <label>Faceit ID</label>
+            <div class="form-description">
+              Укажите ваш Faceit ID для автоматического отслеживания статистики
+              и целей
+            </div>
+            <div class="input-group">
+              <tui-input
+                [(ngModel)]="faceitId"
+                placeholder="Введите ваш Faceit ID"
+                size="l"
+                class="faceit-input"
+              >
+                <span tuiInputIconLeft>🎮</span>
+                Faceit ID
+              </tui-input>
+              <button
+                tuiButton
+                appearance="primary"
+                size="m"
+                (click)="saveFaceitId()"
+                [disabled]="!faceitId || !faceitId.trim()"
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+
+          <div class="faceit-stats" *ngIf="playerStats">
+            <h4 style="margin-top: 24px; margin-bottom: 16px">
+              Ваша статистика Faceit
+            </h4>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-icon"></div>
+                <div class="stat-value">
+                  {{
+                    playerStats?.kdRatio
+                      ? (playerStats.kdRatio | number : '1.2-2')
+                      : 'N/A'
+                  }}
+                </div>
+                <div class="stat-label">K/D Ratio</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon"></div>
+                <div class="stat-value">
+                  {{
+                    playerStats?.winRatePercent
+                      ? (playerStats.winRatePercent | number : '1.1-1') + '%'
+                      : 'N/A'
+                  }}
+                </div>
+                <div class="stat-label">Win Rate</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon"></div>
+                <div class="stat-value">
+                  {{
+                    playerStats?.matchesPlayed
+                      ? (playerStats.matchesPlayed | number)
+                      : 'N/A'
+                  }}
+                </div>
+                <div class="stat-label">Matches</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </tui-island>
+
+      <div class="logout-section">
+        <button tuiButton appearance="error" size="m" (click)="signOut()">
+          Выйти из системы
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="showLogin">
+      <tui-island size="l">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Вход в систему</h3>
+        <div class="auth-form">
+          <div class="form-group">
+            <label>Email</label>
+            <tui-input [(ngModel)]="email" placeholder="Введите email" size="l">
+              Email
+            </tui-input>
+          </div>
+          <div class="form-group">
+            <label>Пароль</label>
+            <tui-input
+              [(ngModel)]="password"
+              type="password"
+              placeholder="Введите пароль"
+              size="l"
+            >
+              Пароль
+            </tui-input>
+          </div>
+          <div class="form-actions">
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="signInWithEmail()"
+            >
+              Войти
+            </button>
+            <button tuiButton appearance="flat" size="m" (click)="backToMain()">
+              Назад
+            </button>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="showRegister">
+      <tui-island size="l">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Регистрация</h3>
+        <div class="auth-form">
+          <div class="form-group">
+            <label>Email</label>
+            <tui-input [(ngModel)]="email" placeholder="Введите email" size="l">
+              Email
+            </tui-input>
+          </div>
+          <div class="form-group">
+            <label>Пароль</label>
+            <tui-input
+              [(ngModel)]="password"
+              type="password"
+              placeholder="Введите пароль"
+              size="l"
+            >
+              Пароль
+            </tui-input>
+          </div>
+          <div class="form-group">
+            <label>Подтвердите пароль</label>
+            <tui-input
+              [(ngModel)]="confirmPassword"
+              type="password"
+              placeholder="Подтвердите пароль"
+              size="l"
+            >
+              Подтвердите пароль
+            </tui-input>
+          </div>
+          <div class="form-actions">
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="signUpWithEmail()"
+              [disabled]="!canRegister"
+            >
+              Зарегистрироваться
+            </button>
+            <button tuiButton appearance="flat" size="m" (click)="backToMain()">
+              Назад
+            </button>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+  </tui-loader>
+</section>

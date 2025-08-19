@@ -1,0 +1,229 @@
+<section>
+  <h2>Цели и достижения</h2>
+
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <ng-container *ngIf="!isAuthenticated">
+      <tui-island size="l" appearance="warning">
+        <div class="auth-required">
+          <h3 style="margin-top: 0; color: var(--danger)">
+            Войдите для доступа к целям
+          </h3>
+          <p>
+            Для создания и отслеживания целей необходимо войти в систему и
+            указать Faceit ID.
+          </p>
+          <div class="auth-buttons">
+            <button tuiButton appearance="primary" size="m" (click)="signIn()">
+              Войти через Google
+            </button>
+            <button tuiButton appearance="flat" size="m" routerLink="/account">
+              Перейти в личный кабинет
+            </button>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="isAuthenticated && !hasFaceitId">
+      <tui-island size="l" appearance="warning">
+        <div class="faceit-required">
+          <h3 style="margin-top: 0; color: var(--warning)">
+            Требуется Faceit ID
+          </h3>
+          <p>
+            Для автоматического отслеживания прогресса целей необходимо указать
+            ваш Faceit ID в профиле.
+          </p>
+          <button tuiButton appearance="primary" size="m" routerLink="/account">
+            Перейти в профиль
+          </button>
+        </div>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="isAuthenticated && hasFaceitId">
+      <tui-island size="l" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; margin-bottom: 20px">
+          Ваша текущая статистика
+        </h3>
+        <div class="player-stats" *ngIf="playerStats">
+          <div class="stat-card">
+            <div class="stat-icon"></div>
+            <div class="stat-value">
+              {{ playerStats.kdRatio | number : '1.2-2' }}
+            </div>
+            <div class="stat-label">K/D Ratio</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"></div>
+            <div class="stat-value">
+              {{ playerStats.winRatePercent | number : '1.1-1' }}%
+            </div>
+            <div class="stat-label">Win Rate</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"></div>
+            <div class="stat-value">
+              {{ playerStats.matchesPlayed | number }}
+            </div>
+            <div class="stat-label">Matches</div>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="l" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Добавить новую цель</h3>
+        <div class="goal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Название цели</label>
+              <tui-input
+                [(ngModel)]="title"
+                placeholder="Например: Достичь винрейт 60%"
+                size="l"
+              >
+                Название
+              </tui-input>
+            </div>
+            <div class="form-group">
+              <label>Метрика</label>
+              <select [(ngModel)]="metric" class="form-select" size="l">
+                <option value="winrate">Win Rate %</option>
+                <option value="matches">Количество матчей</option>
+                <option value="kd">K/D Ratio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Целевое значение</label>
+              <tui-input
+                [(ngModel)]="target"
+                type="number"
+                placeholder="60"
+                size="l"
+              >
+                Цель
+              </tui-input>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              tuiButton
+              appearance="primary"
+              size="l"
+              type="button"
+              (click)="add()"
+              [disabled]="!canAdd"
+            >
+              Добавить цель
+            </button>
+            <button
+              tuiButton
+              appearance="flat"
+              size="l"
+              type="button"
+              (click)="clearForm()"
+            >
+              Очистить
+            </button>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="m" style="margin-bottom: 20px">
+        <div class="filter-section">
+          <div class="filter-row">
+            <tui-input
+              [ngModel]="filter"
+              (ngModelChange)="onFilter($event)"
+              placeholder="Поиск по названию цели..."
+              size="l"
+              class="search-input"
+            >
+              <span tuiInputIconLeft> Поиск </span>
+            </tui-input>
+            <button
+              tuiButton
+              appearance="flat"
+              size="l"
+              (click)="clearFilter()"
+            >
+              Очистить фильтр
+            </button>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="l">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Мои цели</h3>
+
+        <div class="table-container">
+          <table class="goals-table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Цель</th>
+                <th>Прогресс</th>
+                <th class="actions-header" style="text-align: right">
+                  Действия
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let g of paged" class="goal-row">
+                <td>
+                  <div class="goal-title">{{ g.title }}</div>
+                </td>
+                <td>
+                  <div class="target-value">{{ g.target || '-' }}</div>
+                </td>
+                <td>
+                  <div class="progress-section">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        [style.width.%]="getProgressPercent(g)"
+                      ></div>
+                    </div>
+                    <div class="progress-text">
+                      {{ getCurrentValue(g) }} / {{ g.target }}
+                      <span class="progress-percent"
+                        >({{ getProgressPercent(g) | number : '1.0-0' }}%)</span
+                      >
+                    </div>
+                  </div>
+                </td>
+                <td class="actions-cell">
+                  <div class="actions">
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="flat"
+                      (click)="editGoal(g)"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="error"
+                      (click)="deleteGoal(g)"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-container">
+          <tui-pagination
+            [length]="totalPages"
+            [(index)]="page"
+          ></tui-pagination>
+        </div>
+      </tui-island>
+    </ng-container>
+  </tui-loader>
+</section>

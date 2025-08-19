@@ -1,0 +1,158 @@
+<section>
+  <h2>Поиск игроков</h2>
+
+  <tui-island size="l" style="margin-bottom: 24px">
+    <h3 style="margin-top: 0; margin-bottom: 20px">
+      Найти игрока по никнейму или Faceit ID
+    </h3>
+    <div class="search-container">
+      <tui-input
+        class="search-input"
+        [(ngModel)]="query"
+        (ngModelChange)="onInput($event)"
+        (keydown.enter)="onSearch()"
+        placeholder="Введите никнейм или Faceit ID игрока"
+        size="l"
+      >
+        <span tuiInputIconLeft>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </span>
+        Поиск
+      </tui-input>
+      <button
+        tuiButton
+        size="l"
+        appearance="primary"
+        type="button"
+        (click)="onSearch()"
+      >
+        Искать
+      </button>
+    </div>
+
+    <div class="search-tips">
+      <p><strong>Советы:</strong></p>
+      <ul>
+        <li>Введите точный никнейм для поиска</li>
+        <li>Или вставьте Faceit ID для прямого перехода в профиль</li>
+        <li>Поиск автоматически запустится после ввода 3+ символов</li>
+      </ul>
+    </div>
+  </tui-island>
+
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <ng-container *ngIf="error">
+      <tui-island appearance="warning" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; color: var(--danger)">Ошибка поиска</h3>
+        <p>
+          Сервис поиска недоступен. Проверьте подключение к интернету или
+          попробуйте позже.
+        </p>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="results.length && !loading">
+      <h3 style="margin-bottom: 16px">
+        Результаты поиска ({{ results.length }})
+      </h3>
+      <div class="results-grid">
+        <tui-island *ngFor="let p of results" size="l" class="player-card">
+          <div class="player-header">
+            <div class="player-avatar">
+              <img
+                *ngIf="p.avatarUrl"
+                [src]="p.avatarUrl"
+                alt="avatar"
+                class="avatar-img"
+              />
+              <svg
+                *ngIf="!p.avatarUrl"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div class="player-main-info">
+              <div class="player-name">{{ p.nickname }}</div>
+              <div class="player-id">ID: {{ p.id }}</div>
+              <div class="player-level" *ngIf="p.level">
+                <img
+                  [src]="getLevelImage(p.level)"
+                  [alt]="'Level ' + p.level"
+                  class="level-icon"
+                />
+                <span>Level {{ p.level }}</span>
+              </div>
+              <div class="player-country" *ngIf="p.country">
+                <img
+                  [src]="getCountryFlag(p.country)"
+                  [alt]="p.country"
+                  class="flag-icon-small"
+                  (error)="onImageError($event)"
+                />
+                <span>{{ p.country }}</span>
+              </div>
+            </div>
+            <div class="player-actions">
+              <a
+                tuiButton
+                appearance="primary"
+                size="m"
+                [routerLink]="['/player', p.id]"
+              >
+                Открыть профиль
+              </a>
+            </div>
+          </div>
+        </tui-island>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!loading && searched && !results.length" class="no-results">
+      <tui-island size="l">
+        <div style="text-align: center; padding: 32px">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            style="margin-bottom: 16px; color: var(--muted)"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <h3 style="margin-bottom: 8px">Ничего не найдено</h3>
+          <p style="color: var(--muted); margin-bottom: 16px">
+            Попробуйте изменить запрос или проверить правильность написания
+          </p>
+          <button
+            tuiButton
+            appearance="flat"
+            size="m"
+            (click)="query = ''; results = []; searched = false"
+          >
+            Очистить поиск
+          </button>
+        </div>
+      </tui-island>
+    </div>
+  </tui-loader>
+</section>

@@ -1,0 +1,7 @@
+<section>
+  <h2>Auth</h2>
+  <button (click)="login()">Войти через Google</button>
+  <button (click)="loginFaceit()">Войти через FACEIT</button>
+  <button (click)="logout()">Выйти</button>
+  <div *ngIf="userEmail as email">Вошли как: {{ email }}</div>
+</section>

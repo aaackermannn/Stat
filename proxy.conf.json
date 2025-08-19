@@ -1,0 +1,12 @@
+[
+  {
+    "context": ["/api"],
+    "target": "http://127.0.0.1:5002",
+    "secure": false,
+    "logLevel": "debug",
+    "pathRewrite": { "^/api": "/faceitstat-80e79/europe-west1/api" }
+  }
+]
+
+
+

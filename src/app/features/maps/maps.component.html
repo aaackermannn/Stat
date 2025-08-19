@@ -1,0 +1,96 @@
+<section>
+  <h2>Аналитика карт</h2>
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <div *ngIf="!loading">
+      <div class="row" style="margin: 8px 0">
+        <input
+          [value]="filter"
+          (input)="onFilter($any($event.target).value)"
+          placeholder="Фильтр по карте"
+        />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <button
+                tuiButton
+                size="s"
+                appearance="flat"
+                type="button"
+                (click)="onSort('map')"
+              >
+                Карта
+              </button>
+            </th>
+            <th>
+              <button
+                tuiButton
+                size="s"
+                appearance="flat"
+                type="button"
+                (click)="onSort('winRatePercent')"
+              >
+                WR %
+              </button>
+            </th>
+            <th>
+              <button
+                tuiButton
+                size="s"
+                appearance="flat"
+                type="button"
+                (click)="onSort('kdRatio')"
+              >
+                K/D
+              </button>
+            </th>
+            <th>
+              <button
+                tuiButton
+                size="s"
+                appearance="flat"
+                type="button"
+                (click)="onSort('matchesPlayed')"
+              >
+                Матчей
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of paged">
+            <td>
+              <tui-island size="s">{{ m.map }}</tui-island>
+            </td>
+            <td>
+              <tui-tag
+                size="s"
+                [status]="
+                  m.winRatePercent >= 50
+                    ? 'success'
+                    : m.winRatePercent >= 40
+                    ? 'neutral'
+                    : 'error'
+                "
+              >
+                {{ m.winRatePercent }}%
+              </tui-tag>
+            </td>
+            <td>
+              <tui-tag
+                size="s"
+                [status]="m.kdRatio >= 1 ? 'success' : 'neutral'"
+                >{{ m.kdRatio }}</tui-tag
+              >
+            </td>
+            <td>
+              <tui-badge size="s">{{ m.matchesPlayed }}</tui-badge>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <tui-pagination [length]="totalPages" [(index)]="page"></tui-pagination>
+    </div>
+  </tui-loader>
+</section>

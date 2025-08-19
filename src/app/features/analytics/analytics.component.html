@@ -1,0 +1,141 @@
+<section>
+  <h2>Аналитика и дашборды</h2>
+
+  <tui-island size="l" style="margin-bottom: 24px">
+    <h3 style="margin-top: 0; margin-bottom: 16px">Быстрый поиск игроков</h3>
+    <div class="search-container">
+      <tui-input
+        class="search-input"
+        [(ngModel)]="query"
+        (ngModelChange)="onInput($event)"
+        (keydown.enter)="onSearch()"
+        placeholder="Введите никнейм или Faceit ID игрока"
+        size="l"
+      >
+        <span tuiInputIconLeft>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </span>
+        Поиск
+      </tui-input>
+      <button
+        tuiButton
+        size="l"
+        appearance="primary"
+        type="button"
+        (click)="onSearch()"
+      >
+        Искать
+      </button>
+    </div>
+
+    <tui-loader [showLoader]="loading" [overlay]="true">
+      <ng-container *ngIf="error">
+        <tui-island appearance="warning" style="margin-top: 16px">
+          Сервис поиска недоступен. Проверьте подключение.
+        </tui-island>
+      </ng-container>
+
+      <ng-container *ngIf="results.length && !loading">
+        <div class="search-results" style="margin-top: 16px">
+          <tui-island
+            *ngFor="let p of results"
+            size="m"
+            style="margin-bottom: 12px"
+          >
+            <div class="player-card">
+              <div class="player-info">
+                <div class="player-name">{{ p.nickname }}</div>
+                <div class="player-country" *ngIf="p.country">
+                  <img
+                    [src]="getCountryFlag(p.country)"
+                    [alt]="p.country"
+                    class="flag-icon-small"
+                  />
+                  <span>{{ p.country }}</span>
+                </div>
+                <div class="player-stats">
+                  <tui-tag size="s" status="neutral"
+                    >K/D {{ p.kdRatio }}</tui-tag
+                  >
+                  <tui-tag
+                    size="s"
+                    [status]="
+                      p.winRatePercent >= 50
+                        ? 'success'
+                        : p.winRatePercent >= 40
+                        ? 'neutral'
+                        : 'error'
+                    "
+                  >
+                    WR {{ p.winRatePercent }}%
+                  </tui-tag>
+                  <tui-tag size="s" status="neutral"
+                    >HS {{ p.headshotPercent }}%</tui-tag
+                  >
+                  <tui-badge size="s">{{ p.matchesPlayed }} матчей</tui-badge>
+                </div>
+              </div>
+              <a
+                tuiButton
+                appearance="primary"
+                [routerLink]="['/player', p.id]"
+              >
+                Открыть профиль
+              </a>
+            </div>
+          </tui-island>
+        </div>
+      </ng-container>
+
+      <div
+        *ngIf="!loading && searched && !results.length"
+        style="margin-top: 16px; text-align: center; color: var(--muted)"
+      >
+        Ничего не найдено
+      </div>
+    </tui-loader>
+  </tui-island>
+
+  <div class="charts-grid">
+    <tui-island size="l">
+      <h3>Динамика K/D</h3>
+      <tui-line-chart [value]="kdSeries"></tui-line-chart>
+    </tui-island>
+
+    <tui-island size="l">
+      <h3>Динамика винрейта</h3>
+      <tui-line-chart [value]="winrateSeries"></tui-line-chart>
+    </tui-island>
+
+    <tui-island size="l">
+      <h3>Динамика хедшотов</h3>
+      <tui-line-chart [value]="hsSeries"></tui-line-chart>
+    </tui-island>
+  </div>
+
+  <tui-island size="l" style="margin-top: 24px">
+    <h3 style="margin-top: 0; margin-bottom: 16px">Быстрые действия</h3>
+    <div class="quick-actions">
+      <a tuiButton appearance="flat" size="l" routerLink="/search">
+        Расширенный поиск
+      </a>
+      <a tuiButton appearance="flat" size="l" routerLink="/goals"> Мои цели </a>
+      <a tuiButton appearance="flat" size="l" routerLink="/notes">
+        Мои заметки
+      </a>
+      <a tuiButton appearance="flat" size="l" routerLink="/account">
+        Личный кабинет
+      </a>
+    </div>
+  </tui-island>
+</section>

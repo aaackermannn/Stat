@@ -1,0 +1,171 @@
+<section>
+  <h2>Личные заметки</h2>
+
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <ng-container *ngIf="!isAuthenticated">
+      <tui-island size="l" appearance="warning">
+        <div class="auth-required">
+          <h3 style="margin-top: 0; color: var(--danger)">
+            Войдите для доступа к заметкам
+          </h3>
+          <p>Для создания и просмотра заметок необходимо войти в систему.</p>
+          <div class="auth-buttons">
+            <button tuiButton appearance="primary" size="m" (click)="signIn()">
+              Войти через Google
+            </button>
+            <button tuiButton appearance="flat" size="m" routerLink="/account">
+              Перейти в личный кабинет
+            </button>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+
+    <ng-container *ngIf="isAuthenticated">
+      <tui-island size="l" style="margin-bottom: 24px">
+        <h3 style="margin-top: 0; margin-bottom: 20px">
+          Добавить новую заметку
+        </h3>
+        <div class="note-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Тип заметки</label>
+              <select [(ngModel)]="type" class="form-select" size="l">
+                <option
+                  *ngFor="let option of typeOptions"
+                  [value]="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label>Текст заметки</label>
+              <tui-input
+                [(ngModel)]="text"
+                placeholder="Опишите ваши наблюдения..."
+                size="l"
+              >
+                Заметка
+              </tui-input>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button
+              tuiButton
+              appearance="primary"
+              size="m"
+              (click)="add()"
+              [disabled]="!canAdd"
+            >
+              Добавить заметку
+            </button>
+            <button
+              tuiButton
+              appearance="flat"
+              size="l"
+              type="button"
+              (click)="clearForm()"
+            >
+              {{ editingNote ? 'Отменить' : 'Очистить' }}
+            </button>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="m" style="margin-bottom: 20px">
+        <div class="filter-section">
+          <div class="filter-row">
+            <tui-input
+              [ngModel]="filter"
+              (ngModelChange)="onFilter($event)"
+              placeholder="Поиск по тексту заметки..."
+              size="l"
+              class="search-input"
+            >
+              Поиск
+            </tui-input>
+            <button
+              tuiButton
+              appearance="flat"
+              size="l"
+              (click)="clearFilter()"
+            >
+              Очистить фильтр
+            </button>
+          </div>
+        </div>
+      </tui-island>
+
+      <tui-island size="l">
+        <h3 style="margin-top: 0; margin-bottom: 20px">Мои заметки</h3>
+
+        <div class="table-container">
+          <table class="notes-table">
+            <thead>
+              <tr>
+                <th class="date-header">Дата</th>
+                <th class="type-header">Тип</th>
+                <th class="text-header">Текст</th>
+                <th class="actions-header">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let n of paged" class="note-row">
+                <td class="date-cell">
+                  <div class="note-date">
+                    <div class="date-day">{{ n.createdAt | date : 'dd' }}</div>
+                    <div class="date-month">
+                      {{ n.createdAt | date : 'MMM' }}
+                    </div>
+                    <div class="date-time">
+                      {{ n.createdAt | date : 'HH:mm' }}
+                    </div>
+                  </div>
+                </td>
+                <td class="type-cell">
+                  <div class="note-type">
+                    {{ n.type === 'match' ? 'Матч' : 'Тиммейт' }}
+                  </div>
+                </td>
+                <td class="text-cell">
+                  <div class="note-text">{{ n.text }}</div>
+                </td>
+                <td class="actions-cell">
+                  <div class="actions">
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="flat"
+                      (click)="editNote(n)"
+                      title="Редактировать"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      tuiButton
+                      size="s"
+                      appearance="error"
+                      (click)="deleteNote(n)"
+                      title="Удалить"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Пагинация -->
+        <div class="pagination-container">
+          <tui-pagination
+            [length]="totalPages"
+            [(index)]="page"
+          ></tui-pagination>
+        </div>
+      </tui-island>
+    </ng-container>
+  </tui-loader>
+</section>

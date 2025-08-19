@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Users own profile
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // User goals as separate doc
+    match /user-goals/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Notes collection (by uid)
+    match /notes/{noteId} {
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Schedule events (by uid)
+    match /schedule/{eventId} {
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Faceit cache — readable by anyone, writable only via Functions (with custom claims if needed)
+    match /faceit-cache/{doc=**} {
+      allow read: if true;
+      allow write: if false; // change to functions-only if you add privileged writer
+    }
+  }
+}
+
+

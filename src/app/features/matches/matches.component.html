@@ -1,0 +1,317 @@
+<section>
+  <h2>История матчей и аналитика</h2>
+
+  <div *ngIf="!loading && !playerId" class="error-message">
+    <tui-island appearance="error">
+      <h3 style="margin-top: 0; color: var(--danger)">Ошибка загрузки</h3>
+      <p>
+        Не указан ID игрока для загрузки матчей. Перейдите к профилю игрока и
+        нажмите "Матчи".
+      </p>
+      <button
+        tuiButton
+        size="s"
+        appearance="flat"
+        (click)="retryLoad()"
+        [disabled]="retryLoading"
+      >
+        {{ retryLoading ? 'Загрузка...' : 'Попробовать снова' }}
+      </button>
+    </tui-island>
+  </div>
+
+  <tui-loader [showLoader]="loading" [overlay]="true">
+    <div class="charts" *ngIf="!loading && data && data.items.length > 0">
+      <tui-island size="m">
+        <h3>Динамика K/D</h3>
+        <zingchart-angular
+          [config]="kdChartConfig"
+          [height]="300"
+        ></zingchart-angular>
+      </tui-island>
+      <tui-island size="m">
+        <h3>Динамика винрейта</h3>
+        <zingchart-angular
+          [config]="wrChartConfig"
+          [height]="300"
+        ></zingchart-angular>
+      </tui-island>
+    </div>
+
+    <div *ngIf="!loading && data && data.items.length === 0" class="no-matches">
+      <tui-island appearance="warning">
+        <h3 style="margin-top: 0">Нет матчей</h3>
+        <p>Для данного игрока не найдено матчей или они еще не загружены.</p>
+        <button
+          tuiButton
+          size="s"
+          appearance="flat"
+          (click)="retryLoad()"
+          [disabled]="retryLoading"
+        >
+          {{ retryLoading ? 'Загрузка...' : 'Повторить загрузку' }}
+        </button>
+      </tui-island>
+    </div>
+
+    <tui-island
+      *ngIf="!loading && data && data.items.length > 0"
+      size="l"
+      class="maps-stats-section"
+    >
+      <h3 class="maps-stats-title">Статистика по картам</h3>
+      <div class="maps-stats-grid">
+        <div *ngFor="let mapStat of mapsStats" class="map-stat-card">
+          <div class="map-stat-header">
+            <img
+              *ngIf="getMapImage(mapStat.map)"
+              [src]="getMapImage(mapStat.map)"
+              [alt]="mapStat.map"
+              class="map-stat-thumbnail"
+            />
+            <div class="map-stat-title">
+              {{ getMapName(mapStat.map) || mapStat.map }}
+            </div>
+          </div>
+          <div class="map-stat-content">
+            <div class="map-stat-row">
+              <span class="map-stat-label">Матчи:</span>
+              <span class="map-stat-value">{{ mapStat.matchesPlayed }}</span>
+            </div>
+            <div class="map-stat-row">
+              <span class="map-stat-label">Винрейт:</span>
+              <span
+                class="map-stat-value"
+                [class.win-rate-high]="mapStat.winRate >= 50"
+                [class.win-rate-low]="mapStat.winRate < 50"
+              >
+                {{ mapStat.winRate | number : '1.1-1' }}%
+              </span>
+            </div>
+            <div class="map-stat-row">
+              <span class="map-stat-label">K/D:</span>
+              <span class="map-stat-value">{{
+                mapStat.avgKD | number : '1.2-2'
+              }}</span>
+            </div>
+            <div class="map-stat-row">
+              <span class="map-stat-label">Средние убийства:</span>
+              <span class="map-stat-value">{{
+                mapStat.avgKills | number : '1.1-1'
+              }}</span>
+            </div>
+            <div class="map-stat-row">
+              <span class="map-stat-label">Средние смерти:</span>
+              <span class="map-stat-value">{{
+                mapStat.avgDeaths | number : '1.1-1'
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </tui-island>
+
+    <div
+      *ngIf="!loading && data && data.items.length > 0"
+      class="matches-table-section"
+    >
+      <div class="limit-switch">
+        <span class="limit-label">Показывать:</span>
+        <button
+          type="button"
+          class="limit-btn"
+          [class.active]="selectedLimit === 20"
+          (click)="changeLimit(20)"
+        >
+          20
+        </button>
+        <button
+          type="button"
+          class="limit-btn"
+          [class.active]="selectedLimit === 50"
+          (click)="changeLimit(50)"
+        >
+          50
+        </button>
+        <button
+          type="button"
+          class="limit-btn"
+          [class.active]="selectedLimit === 100"
+          (click)="changeLimit(100)"
+        >
+          100
+        </button>
+      </div>
+      <div class="filter-section">
+        <input
+          [value]="filterValue"
+          (input)="onFilter(($any($event.target).value)"
+          placeholder="Фильтр по карте"
+          class="filter-input"
+        />
+      </div>
+      <table class="matches-table">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Карта</th>
+            <th>Регион</th>
+            <th>Результат</th>
+            <th class="score-header">Счет</th>
+            <th>K</th>
+            <th>D</th>
+            <th>K/D</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let m of pagedItems"
+            (click)="openMatch(m.matchId)"
+            class="match-row"
+          >
+            <td>{{ m.playedAt | date : 'short' }}</td>
+            <td>
+              <div class="map-cell">
+                <img
+                  *ngIf="getMapImage(getMapName(m.map))"
+                  [src]="getMapImage(getMapName(m.map))"
+                  [alt]="getMapName(m.map)"
+                  class="map-thumbnail"
+                />
+                <span>{{ getMapName(m.map) || '-' }}</span>
+              </div>
+            </td>
+            <td>{{ m.region }}</td>
+            <td>
+              <span *ngIf="m.win === true" class="result-win">ПОБЕДА</span>
+              <span *ngIf="m.win === false" class="result-loss">ПОРАЖЕНИЕ</span>
+              <span *ngIf="m.win === undefined">-</span>
+            </td>
+            <td>
+              <div class="score-display">
+                {{ m.scoreFor || 0 }} : {{ m.scoreAgainst || 0 }}
+              </div>
+            </td>
+            <td>{{ m.kills ?? '-' }}</td>
+            <td>{{ m.deaths ?? '-' }}</td>
+            <td>{{ m.kd ?? '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <tui-pagination
+        [length]="totalPages"
+        [(index)]="page"
+        (indexChange)="onPageChange($event)"
+      ></tui-pagination>
+    </div>
+
+    <!-- Детали матча -->
+    <ng-container *ngIf="details as d">
+      <tui-island size="l" class="match-details">
+        <div class="match-details-header">
+          <div class="match-info">
+            <strong>Матч {{ d.matchId }}</strong>
+            <div class="muted">
+              {{ d.map || 'Unknown' }} · {{ d.region || '-' }}
+            </div>
+            <div class="muted">
+              {{ d.startedAt | date : 'short' }} —
+              {{ d.finishedAt | date : 'short' }}
+            </div>
+            <div class="match-score">
+              <span class="score-team">{{
+                d.scoreboard[0].name || 'Team 1'
+              }}</span>
+              <span class="score-separator">vs</span>
+              <span class="score-team">{{
+                d.scoreboard[1].name || 'Team 2'
+              }}</span>
+              <div class="score-result">
+                <span class="score">{{ d.scoreFor || 0 }}</span>
+                <span class="score-separator">:</span>
+                <span class="score">{{ d.scoreAgainst || 0 }}</span>
+              </div>
+            </div>
+          </div>
+          <button
+            tuiButton
+            size="s"
+            appearance="flat"
+            type="button"
+            (click)="closeDetails()"
+            class="close-btn"
+          >
+            Закрыть
+          </button>
+        </div>
+        <div class="teams-grid">
+          <div *ngFor="let t of d.scoreboard" class="team-card">
+            <div class="team-header">
+              <div class="team-name">{{ t.name || t.key | uppercase }}</div>
+              <tui-badge size="s">{{ t.score }}</tui-badge>
+            </div>
+            <table class="team-players-table">
+              <thead>
+                <tr>
+                  <th>Игрок</th>
+                  <th>K</th>
+                  <th>D</th>
+                  <th>K/D</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of t.players" class="player-row">
+                  <td>
+                    <div class="player-info">
+                      <img
+                        *ngIf="p.avatarUrl"
+                        [src]="p.avatarUrl"
+                        alt="avatar"
+                        class="player-avatar-small"
+                      />
+                      <div
+                        *ngIf="!p.avatarUrl"
+                        class="player-avatar-placeholder"
+                      >
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                        >
+                          <path
+                            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                          ></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                      </div>
+                      <div class="player-details">
+                        <a
+                          [routerLink]="['/player', p.id]"
+                          (click)="$event.stopPropagation()"
+                          class="player-nickname"
+                          >{{ p.nickname }}</a
+                        >
+                        <img
+                          *ngIf="p.level"
+                          [src]="getLevelImage(p.level)"
+                          [alt]="'Level ' + p.level"
+                          class="level-icon-small"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ p.kills }}</td>
+                  <td>{{ p.deaths }}</td>
+                  <td>{{ p.kd }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </tui-island>
+    </ng-container>
+  </tui-loader>
+</section>
